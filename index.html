@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script>/* <![CDATA[ */ ringDataLayer = { "context": { "variant": { "accelerator": "ZG93bmxvYWQucG9jenRhLm9uZXQucGw6OnByb2Rfd2l0aF91c2VyX2RhdGFfZG93bmxvYWRlcl9pbl9hd3M=" } } }; /* ]]> */</script>
+    <script>/* <![CDATA[ */ accConf = { "events": { "endpointPaths": ["/a8f4d8cd95e164917035b64b867a45dd"] } }; /* ]]> */</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: #393939;
+            font-family: 'PressStart2P';
+            color: #A5A2B2;
+            overflow: hidden;
+        }
+
+        @font-face {
+            font-family: 'PressStart2P';
+            src: url('fonts/PressStart2P.ttf') format('truetype');
+        }
+
+        #inputt {
+            background-color: #393939;
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+        }
+
+        #image {
+            width: 384px;
+            height: 240px;
+        }
+
+        .line {
+            margin-bottom: 10px;
+        }
+
+        #compass {
+            position: absolute;
+            left: 750px;
+            top: 50px;
+        }
+
+        #container {
+            position: relative;
+            height: 1px;
+        }
+
+        #intros {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <form>
+        <input type="text" id="inputt" onblur="this.focus()" autofocus>
+        <input id="btn" onclick="game.player.go(document.getElementById('inputt').value)" hidden />
+    </form>
+    <div id="container">
+        <div id="compass"></div>
+    </div>
+    <div id="img_desc" class="line"></div>
+    <div id="image" class="line"></div>
+    <div id="directions" class="line"></div>
+    <div id="see" class="line"></div>
+    <div id="carry" class="line"></div></br>
+    <div id="now"></div>
+    <script>
+        function init() {
+            var vocabCheck = 0
+            globalThis.vocabCheck = vocabCheck
+            var timeout = 0
+            globalThis.timeout = timeout
+            var carried = 0
+            globalThis.carried = carried
+            var finalFlag = 0
+            globalThis.finalFlag = finalFlag
+            var loading = document.createElement("img")
+            var czolowka = document.createElement("img")
+            var intro1 = document.createElement("img")
+            var intro2 = document.createElement("img")
+            loading.src = "img/loading.png"
+            loading.id = "intros"
+            czolowka.src = "img/czolowka.jpg"
+            czolowka.id = "intros"
+            intro1.style.position = "absolute"
+            intro1.id = "intros"
+            intro2.style.position = "absolute"
+            intro2.id = "intros"
+            intro1.src = "img/opis_A.jpg"
+            intro2.src = "img/opis_B.jpg"
+            document.body.appendChild(loading)
+
+            var hejnal = document.createElement("AUDIO");
+            hejnal.setAttribute("src", "audio/hejnal.mp3")
+            hejnal.setAttribute("controls", "controls");
+            hejnal.setAttribute("autoplay", "autoplay");
+            hejnal.style.position = "absolute"
+            hejnal.style.left = "-9999px"
+
+            loading.onclick = function () {
+                document.body.removeChild(loading)
+                globalThis.timeout = 1
+                document.body.appendChild(czolowka)
+                document.body.appendChild(hejnal)
+                hejnal.play()
+                setTimeout(function () {
+                    document.body.removeChild(czolowka)
+                    document.body.appendChild(intro1)
+                    setTimeout(function () {
+                        document.body.removeChild(intro1)
+                        document.body.appendChild(intro2)
+                        setTimeout(function () {
+                            document.body.removeChild(intro2)
+                            document.body.removeChild(hejnal)
+                            globalThis.timeout = 0
+                            var back = document.createElement("img")
+                            var comp = document.createElement("img")
+                            back.src = "img/47.gif"
+                            back.width = "384"
+                            back.height = "240"
+                            comp.style.width = "384px"
+                            comp.style.height = "180px"
+                            comp.src = `img/NSW.png`
+                            document.getElementById("compass").appendChild(comp)
+                            document.getElementById("image").style.backgroundColor = "rgb(255,190,99)"
+                            document.getElementById("image").style.border = "3px solid white"
+                            document.getElementById("image").appendChild(back)
+                            document.getElementById("img_desc").innerHTML = "You are in a frontyard of your house"
+                            document.getElementById("directions").innerHTML = "You can go WEST, NORTH, SOUTH"
+                            document.getElementById("see").innerHTML = "You see nothing"
+                            document.getElementById("carry").innerHTML = "You are carrying nothing"
+                            document.getElementById("now").innerHTML = "What now?"
+                        }, 9492) // 9492
+                    }, 7151) // 7151
+                }, 7492) // 7492
+            }
+        }
+
+        class Location {
+            constructor(desc, img, col, dir, item) {
+                this.desc = desc
+                this.img = img
+                this.col = col
+                this.dir = dir
+                this.item = item
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            game = {
+                board: [
+                    [
+                        new Location("You are inside a brimstone mine", "img/11.gif", "rgb(235,211,64)", "E", []),
+                        new Location("You are at the entrance to the mine", "img/12.gif", "rgb(89,93,87)", "EW", []),
+                        new Location("A hill", "img/13.gif", "rgb(117,237,243)", "ESW", []),
+                        new Location("Some bushes", "img/14.gif", "rgb(202,230,51)", "EW", []),
+                        new Location("An old deserted hut", "img/15.gif", "rgb(220,204,61)", "EW", [27]),
+                        new Location("The edge of a forest", "img/16.gif", "rgb(167,245,63)", "EW", []),
+                        new Location("A dark forest", "img/17.gif", "rgb(140,253,99)", "SW", [14])
+                    ],
+                    [
+                        new Location("A man nearby making tar", "img/21.gif", "rgb(255,190,99)", "ES", []),
+                        new Location("A timber yard", "img/22.gif", "rgb(255,190,99)", "ESW", []),
+                        new Location("You are by a roadside shrine", "img/23.gif", "rgb(167,245,63)", "NESW", [10]),
+                        new Location("You are by a small chapel", "img/24.gif", "rgb(212,229,36)", "EW", []),
+                        new Location("You are on a road leading to a wood", "img/25.gif", "rgb(167,245,63)", "ESW", []),
+                        new Location("You are in a forest", "img/26 i 65.gif", "rgb(167,245,63)", "EW", []),
+                        new Location("You are in a deep forest", "img/27 i 67.gif", "rgb(140,253,99)", "NW", [18])
+                    ],
+                    [
+                        new Location("You are by the Vistula River", "img/31.gif", "rgb(122,232,252)", "NE", []),
+                        new Location("You are by the Vistula River", "img/32.gif", "rgb(140,214,255)", "NW", [32]),
+                        new Location("You are on a bridge over river", "img/33.gif", "rgb(108,181,242)", "NS", []),
+                        new Location("You are by the old tavern", "img/34.gif", "rgb(255,189,117)", "E", []),
+                        new Location("You are at the town's end", "img/35.gif", "rgb(255,190,99)", "NSW", []),
+                        new Location("You are in a butcher's shop", "img/36.gif", "rgb(255,188,102)", "S", []),
+                        new Location("You are in a cooper's house", "img/37.gif", "rgb(255,188,102)", "S", [])
+                    ],
+                    [
+                        new Location("You are in the Wawel Castle", "img/41.gif", "rgb(255,176,141)", "E", []),
+                        new Location("You are inside a dragon's cave", "img/42.gif", "rgb(198,205,193)", "EW", []),
+                        new Location("A perfect place to set a trap", "img/43.gif", "rgb(255,176,141)", "NW", []),
+                        new Location("You are by the water mill", "img/44.gif", "rgb(255,190,99)", "E", [21]),
+                        new Location("You are at a main crossroad", "img/45.gif", "rgb(255,190,99)", "NESW", []),
+                        new Location("You are on a town street", "img/46.gif", "rgb(255,190,99)", "NEW", []),
+                        new Location("You are in a frontyard of your house", "img/47.gif", "rgb(255,190,99)", "NSW", [])
+                    ],
+                    [
+                        new Location(""),
+                        new Location(""),
+                        new Location(""),
+                        new Location("You are by a swift stream", "img/54.gif", "rgb(108,181,242)", "E", []),
+                        new Location("You are on a street leading forest", "img/55.gif", "rgb(255,190,99)", "NSW", [33]),
+                        new Location("You are in a woodcutter's backyard", "img/56.gif", "rgb(255,190,99)", "S", []),
+                        new Location("You are in a shoemaker's house", "img/57.gif", "rgb(254,194,97)", "N", [])
+                    ],
+                    [
+                        new Location(""),
+                        new Location(""),
+                        new Location(""),
+                        new Location("You are in a bleak funeral house", "img/64.gif", "rgb(254,194,97)", "E", [24]),
+                        new Location("You are on a path leading to the wood", "img/26 i 65.gif", "rgb(167,245,63)", "NEW", []),
+                        new Location("You are at the edge of a forest", "img/66.gif", "rgb(167,245,63)", "NEW", []),
+                        new Location("You are in a deep forest", "img/27 i 67.gif", "rgb(140,253,99)", "W", [])
+                    ]
+                ],
+                stuff: {
+                    "10": { id: 10, adj: "a KEY", flag: "1", name: "KEY" },
+                    "11": { id: 11, adj: "an AXE", flag: "1", name: "AXE" },
+                    "12": { id: 12, adj: "STICKS", flag: "1", name: "STICKS" },
+                    "13": { id: 13, adj: "sheeplegs", flag: "0", name: "sheeplegs" },
+                    "14": { id: 14, adj: "MUSHROOMS", flag: "1", name: "MUSHROOMS" },
+                    "15": { id: 15, adj: "MONEY", flag: "1", name: "MONEY" },
+                    "16": { id: 16, adj: "a BARREL", flag: "1", name: "BARREL" },
+                    "17": { id: 17, adj: "a sheeptrunk", flag: "0", name: "sheeptrunk" },
+                    "18": { id: 18, adj: "BERRIES", flag: "1", name: "BERRIES" },
+                    "19": { id: 19, adj: "WOOL", flag: "1", name: "WOOL" },
+                    "20": { id: 20, adj: "a sheepskin", flag: "0", name: "a sheepskin" },
+                    "21": { id: 21, adj: "a BAG", flag: "1", name: "BAG" },
+                    "22": { id: 22, adj: "a RAG", flag: "1", name: "RAG" },
+                    "23": { id: 23, adj: "a sheephead", flag: "0", name: "sheephead" },
+                    "24": { id: 24, adj: "a SPADE", flag: "1", name: "SPADE" },
+                    "25": { id: 25, adj: "SULPHUR", flag: "1", name: "SULPHUR" },
+                    "26": { id: 26, adj: "a solid poison", flag: "0", name: "solid poison" },
+                    "27": { id: 27, adj: "a BUCKET", flag: "1", name: "BUCKET" },
+                    "28": { id: 28, adj: "TAR", flag: "1", name: "TAR" },
+                    "29": { id: 29, adj: "a liquid poison", flag: "0", name: "liquid poison" },
+                    "30": { id: 30, adj: "a dead dragon", flag: "0", name: "dead dragon" },
+                    "31": { id: 31, adj: "a STONE", flag: "1", name: "STONE" },
+                    "32": { id: 32, adj: "a FISH", flag: "1", name: "FISH" },
+                    "33": { id: 33, adj: "a KNIFE", flag: "1", name: "KNIFE" },
+                    "34": { id: 34, adj: "a DRAGONSKIN", flag: "1", name: "DRAGONSKIN" },
+                    "35": { id: 35, adj: "a dragonskin SHOES", flag: "1", name: "SHOES" },
+                    "36": { id: 36, adj: "a PRIZE", flag: "1", name: "PRIZE" },
+                    "37": { id: 37, adj: "a SHEEP", flag: "1", name: "SHEEP" }
+                },
+                dependences: [
+                    [10, 56, 11, "You opened a tool shed and took an axe"],
+                    [11, 67, 12, "You cut sticks for sheeplegs"],
+                    [12, 43, 13, "You prepared legs for your fake sheep, OK"], //L
+                    [14, 34, 15, "The tavern owner paid you money"],
+                    [15, 37, 16, "The cooper sold you a new barrel"],
+                    [16, 43, 17, "You made a nice sheeptrunk, OK"], //L
+                    [18, 36, 19, "The butcher gave you wool"],
+                    [19, 43, 20, "You prepared skin for your fake sheep, OK"], //L
+                    [21, 57, 22, "You used your tools to make a rag"],
+                    [22, 43, 23, "You made a fake sheephead, OK"], //L
+                    [24, 11, 25, "You are digging... (timeout) and digging... (timeout) That's enough sulphur for you"],
+                    [25, 43, 26, "You prepared a solid poison, OK"], //L
+                    [27, 21, 28, "You got a bucket full of tar"],
+                    [28, 43, 29, "You prepared a liquid poison, OK"],
+                    // gdy zebrane wszystkie przedmioty (6*OK), 43, 37, Your fake sheep is full of poison and ready to be eaten by the dragon
+                    [37, 43, 30, "The dragon noticed your gift... (timeout) The dragon ate your sheep and died!"], //L, podmianka zdjęcia na martwego smoka
+                    [33, 43, 34, "You cut a piece of dragon's skin"], // Z zabitym smokiem
+                    [34, 57, 35, "You used your tools to make shoes"],
+                    [35, 41, 36, "The King is impressed by your shoes"],
+                    [36, 0, 0, ""]
+                ],
+                player: {
+                    pos_x: 6,
+                    pos_y: 3,
+                    report(loc) {
+                        let itm = game.stuff
+                        // console.log(loc.desc, loc.img, loc.col, loc.dir, loc.item)
+                        var back = document.createElement("img")
+                        let comp = document.createElement("img")
+                        back.src = loc.img
+                        back.width = "384"
+                        back.height = "240"
+                        document.getElementById("image").innerHTML = ""
+                        document.getElementById("image").style.backgroundColor = loc.col
+                        document.getElementById("image").appendChild(back)
+                        comp.src = `img/${loc.dir}.png`
+                        comp.style.width = "384px"
+                        comp.style.height = "180px"
+                        document.getElementById("compass").innerHTML = ""
+                        document.getElementById("compass").appendChild(comp)
+                        document.getElementById("img_desc").innerHTML = loc.desc
+                        if (loc.item.length == 0) {
+                            document.getElementById("see").innerHTML = "You see nothing"
+                        }
+                        else {
+                            var x = 0
+                            var s = "You see"
+                            while (x < loc.item.length) {
+                                s += " " + itm[loc.item[x]].adj + ","
+                                x++;
+                            }
+                            s = s.slice(0, -1)
+                            document.getElementById("see").innerHTML = s
+                        }
+
+                        if (carried != 0) {
+                            document.getElementById("carry").innerHTML = "You are carrying " + game.stuff[carried].adj
+                        }
+                        else {
+                            document.getElementById("carry").innerHTML = "You are carrying nothing"
+                        }
+                        this.changeDir(loc.dir)
+                    },
+                    changeDir(directions) {
+                        var dirFinal = "You can go"
+                        if (directions.includes("W")) {
+                            dirFinal = dirFinal + " WEST,"
+                        }
+                        if (directions.includes("N")) {
+                            dirFinal = dirFinal + " NORTH,"
+                        }
+                        if (directions.includes("E")) {
+                            dirFinal = dirFinal + " EAST,"
+                        }
+                        if (directions.includes("S")) {
+                            dirFinal = dirFinal + " SOUTH,"
+                        }
+                        dirFinal = dirFinal.slice(0, -1)
+                        document.getElementById("directions").innerHTML = dirFinal
+                    },
+                    go(direction) {
+                        let loc = game.board[this.pos_y][this.pos_x]
+                        if (direction == "N" || direction == "NORTH" || direction == "S" || direction == "SOUTH" || direction == "W" || direction == "WEST" || direction == "E" || direction == "EAST") {
+                            var check = 0
+                            var which = ""
+                            timeout = 1
+                            if (this.pos_y == 3 && this.pos_x == 1 && finalFlag != 7 && (direction == "W" || direction == "WEST")) {
+                                document.getElementById("now").innerHTML = "You can't go that way... "
+                                setTimeout(function () {
+                                    document.getElementById("now").innerHTML = "You can't go that way... The dragon sleeps in a cave!"
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1500)
+                                }, 1500)
+                            }
+                            else {
+                                if ((direction == 'N' || direction == "NORTH") && loc.dir.includes("N")) {
+                                    this.pos_y--
+                                    check = 1
+                                    which = "north"
+                                }
+                                else if ((direction == 'S' || direction == "SOUTH") && loc.dir.includes("S")) {
+                                    this.pos_y++
+                                    check = 1
+                                    which = "south"
+                                }
+                                else if ((direction == 'W' || direction == "WEST") && loc.dir.includes("W")) {
+                                    this.pos_x--
+                                    check = 1
+                                    which = "west"
+                                }
+                                else if ((direction == 'E' || direction == "EAST") && loc.dir.includes("E")) {
+                                    this.pos_x++
+                                    check = 1
+                                    which = "east"
+                                }
+                                loc = game.board[this.pos_y][this.pos_x]
+                                if (check == 1) {
+                                    document.getElementById("now").innerHTML = `You are going ${which}...`
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1000)
+                                    this.report(loc)
+                                }
+                                else {
+                                    document.getElementById("now").innerHTML = "You can't go that way"
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1000)
+                                }
+                            }
+                        }
+                        else if ((direction[0] == "T" && direction[1] == " ") || (direction.substring(0, 4) == "TAKE" && direction[4] == " ")) {
+                            this.handleTake(direction, loc)
+                        }
+                        else if ((direction[0] == "D" && direction[1] == " ") || (direction.substring(0, 4) == "DROP" && direction[4] == " ")) {
+                            this.handleDrop(direction, loc)
+                        }
+                        else if ((direction[0] == "U" && direction[1] == " ") || (direction.substring(0, 3) == "USE" && direction[3] == " ")) {
+                            this.handleUse(direction, loc)
+                        }
+                        else if (direction == "V" || direction == "VOCABULARY") {
+                            this.handleVocabulary()
+                        }
+                        else if (direction == "G" || direction == "GOSSIPS") {
+                            this.handleGossips()
+                        }
+                        else {
+                            timeout = 1
+                            document.getElementById("now").innerHTML = "Try another word or V for vocabulary"
+                            setTimeout(function () {
+                                document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                timeout = 0
+                            }, 1500)
+                        }
+                    },
+                    handleTake(action, loc) {
+                        var itemTaken = action.substring(action.indexOf(" ") + 1, action.length)
+                        // console.log(itemTaken)
+                        var itemId = 0
+                        var x = 10
+                        while (x < 38) {
+                            if (game.stuff[x].name == itemTaken) {
+                                itemId = game.stuff[x].id
+                                break
+                            }
+                            x = x + 1
+                        }
+                        var it1;
+                        var it2;
+                        var it3;
+                        x = 0;
+                        while (x < loc.item.length) {
+                            if (x == 0) {
+                                it1 = loc.item[x]
+                            }
+                            if (x == 1) {
+                                it2 = loc.item[x]
+                            }
+                            if (x == 2) {
+                                it3 = loc.item[x]
+                            }
+                            x++;
+                        }
+                        timeout = 1
+                        if (it1 == itemId || it2 == itemId || it3 == itemId) {
+                            if (carried != 0) {
+                                document.getElementById("now").innerHTML = "You are carrying something"
+                                setTimeout(function () {
+                                    document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                    timeout = 0
+                                }, 1500)
+                            }
+                            else {
+                                if (game.stuff[itemId].flag == "0") {
+                                    document.getElementById("now").innerHTML = "You can't carry it "
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1500)
+                                }
+                                else {
+                                    document.getElementById("now").innerHTML = "You are taking " + game.stuff[itemId].adj
+                                    loc.item.splice(loc.item.indexOf(itemId), 1)
+                                    carried = itemId
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                        game.player.report(loc)
+                                    }, 1500)
+                                }
+                            }
+                        }
+                        else {
+                            document.getElementById("now").innerHTML = "There isn't anything like that here"
+                            setTimeout(function () {
+                                document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                timeout = 0
+                            }, 1500)
+                        }
+                    },
+                    handleDrop(action, loc) {
+                        var itemDropped = action.substring(action.indexOf(" ") + 1, action.length)
+                        // console.log(itemDropped)
+                        var itemId = 0
+                        var x = 10
+                        while (x < 38) {
+                            if (game.stuff[x].name == itemDropped) {
+                                itemId = game.stuff[x].id
+                                break
+                            }
+                            x = x + 1
+                        }
+                        var lgt = 0;
+                        x = 0
+                        while (x < loc.item.length) {
+                            if (game.stuff[loc.item[x]].flag == 1) {
+                                lgt = lgt + 1;
+                            }
+                            x++;
+                        }
+                        timeout = 1
+                        if (carried != 0) {
+                            if (itemId == carried) {
+                                if (lgt == 3) {
+                                    document.getElementById("now").innerHTML = "You can't store any more here"
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1500)
+                                }
+                                else {
+                                    document.getElementById("now").innerHTML = "You are about to drop " + game.stuff[itemId].adj
+                                    loc.item.push(itemId)
+                                    carried = 0
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                        game.player.report(loc)
+                                    }, 1500)
+                                }
+                            }
+                            else {
+                                document.getElementById("now").innerHTML = "You are not carrying it"
+                                setTimeout(function () {
+                                    document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                    timeout = 0
+                                }, 1500)
+                            }
+                        }
+                        else {
+                            document.getElementById("now").innerHTML = "You are not carrying anything"
+                            setTimeout(function () {
+                                document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                timeout = 0
+                            }, 1500)
+                        }
+                    },
+                    handleUse(action, loc) {
+                        var itemUsed = action.substring(action.indexOf(" ") + 1, action.length)
+                        // console.log(itemUsed)
+                        var itemId;
+                        var x = 10
+                        while (x < 38) {
+                            if (game.stuff[x].name == itemUsed) {
+                                itemId = game.stuff[x].id
+                                break
+                            }
+                            x = x + 1
+                        }
+                        var itemCrafted;
+                        var comment;
+                        x = 0
+                        while (x < game.dependences.length) {
+                            if (game.dependences[x][0] == itemId && parseInt(String(this.pos_y + 1) + String(this.pos_x + 1)) == game.dependences[x][1]) {
+                                itemCrafted = game.dependences[x][2]
+                                comment = game.dependences[x][3]
+                                break
+                            }
+                            x++;
+                        }
+                        timeout = 1
+                        if (carried == itemId) {
+                            if (itemId == 36) {
+                                setTimeout(function () {
+                                    document.body.innerHTML = ""
+                                    let victoryScreen = document.createElement("img")
+                                    let mus = document.createElement("AUDIO");
+                                    victoryScreen.src = "img/wygrana.png"
+                                    victoryScreen.style.height = "100%"
+                                    victoryScreen.style.width = "100%"
+                                    victoryScreen.style.position = "absolute"
+                                    victoryScreen.style.left = "0px"
+                                    victoryScreen.style.top = "0px"
+                                    document.body.style.overflow = "hidden"
+                                    mus.setAttribute("src", "audio/victory.mp3")
+                                    mus.setAttribute("controls", "controls");
+                                    mus.setAttribute("autoplay", "autoplay");
+                                    mus.setAttribute("loop", "loop");
+                                    mus.style.position = "absolute"
+                                    mus.style.left = "-9999px"
+                                    document.body.appendChild(victoryScreen)
+                                    document.body.appendChild(mus)
+                                }, 1)
+                            }
+                            else if (itemCrafted != undefined) {
+                                if (itemId == 24) {
+                                    carried = itemCrafted
+                                    document.getElementById("now").innerHTML = "You are digging... "
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "You are digging... and digging... "
+                                        setTimeout(function () {
+                                            document.getElementById("now").innerHTML = "You are digging... and digging... That's enough sulphur for you"
+                                            setTimeout(function () {
+                                                document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                                timeout = 0
+                                                game.player.report(loc)
+                                            }, 1500)
+                                        }, 1500)
+                                    }, 1500)
+                                }
+                                else if (itemId == 37) {
+                                    carried = 0
+                                    document.getElementById("now").innerHTML = "The dragon noticed your gift... "
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "The dragon noticed your gift... The dragon ate your sheep and died!"
+                                        setTimeout(function () {
+                                            document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                            loc.img = "img/dragon.gif"
+                                            finalFlag += 1;
+                                            loc.item.push(30)
+                                            timeout = 0
+                                            game.player.report(loc)
+                                        }, 1500)
+                                    }, 1500)
+                                }
+                                else if (itemId == 12 || itemId == 16 || itemId == 19 || itemId == 22 || itemId == 25 || itemId == 28) {
+                                    document.getElementById("now").innerHTML = comment
+                                    carried = 0
+                                    loc.item.push(itemCrafted)
+                                    finalFlag += 1;
+                                    if (finalFlag == 6) {
+                                        document.getElementById("now").innerHTML = "Your fake sheep is full of poison and ready to be eaten by the dragon"
+                                        loc.item = [37]
+                                        setTimeout(function () {
+                                            document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                            timeout = 0
+                                            game.player.report(loc)
+                                        }, 3000)
+                                    }
+                                    else {
+                                        setTimeout(function () {
+                                            document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                            timeout = 0
+                                            game.player.report(loc)
+                                        }, 1500)
+                                    }
+                                }
+                                else if (itemId == 33 && finalFlag != 7) {
+                                    document.getElementById("now").innerHTML = "Nothing happened"
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                    }, 1500)
+                                }
+                                else {
+                                    document.getElementById("now").innerHTML = comment
+                                    carried = itemCrafted
+                                    setTimeout(function () {
+                                        document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                        timeout = 0
+                                        game.player.report(loc)
+                                    }, 1500)
+                                }
+                            }
+                            else {
+                                document.getElementById("now").innerHTML = "Nothing happened"
+                                setTimeout(function () {
+                                    document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                    timeout = 0
+                                }, 1500)
+                            }
+                        }
+                        else {
+                            document.getElementById("now").innerHTML = "You aren't carrying anything like that"
+                            setTimeout(function () {
+                                document.getElementById("now").innerHTML = "What now? " + document.getElementById("inputt").value
+                                timeout = 0
+                            }, 1500)
+                        }
+                    },
+                    handleVocabulary() {
+                        var vocab = "NORTH or N, SOUTH or S" + "<br>" + "WEST or W, EAST or E" + "<br>" + "TAKE (object) or T (object)" + "<br>" + "DROP (object) or D (object)" + "<br>" + "USE (object) or U (object)" + "<br>" + "GOSSIPS or G, VOCABULARY or V" + "<br>" + "Press any key";
+                        document.getElementById("now").innerHTML = vocab
+                        vocabCheck = 1
+                    },
+                    handleGossips() {
+                        var gos = "The  woodcutter lost  his home key..." + "<br>" + "The butcher likes fruit... The cooper" + "<br>" + "is greedy... Dratewka plans to make a" + "<br>" + "poisoned  bait for the dragon...  The" + "<br>" + "tavern owner is buying food  from the" + "<br>" + "pickers... Making a rag from a bag..." + "<br>" + "Press any key"
+                        document.getElementById("now").innerHTML = gos
+                        vocabCheck = 1
+                    }
+                }
+            }
+        })
+
+        document.getElementById("inputt").addEventListener("keyup", function (event) {
+            if (timeout == 0) {
+                if (event.keyCode === 13) {
+                    if (vocabCheck == 1) {
+                        document.getElementById("inputt").value = ""
+                        document.getElementById("inputt").innerHTML = ""
+                        vocabCheck = 0
+                        document.getElementById("now").innerHTML = "What now? " + this.value
+                    }
+                    else {
+                        document.getElementById("btn").click()
+                        document.getElementById("inputt").value = ""
+                    }
+                }
+            }
+            else {
+                document.getElementById("inputt").value = ""
+                document.getElementById("inputt").innerHTML = ""
+            }
+        })
+
+        document.getElementById("inputt").addEventListener("input", function (event) {
+            if (timeout == 0) {
+                if (vocabCheck == 1) {
+                    document.getElementById("inputt").value = ""
+                    document.getElementById("inputt").innerHTML = ""
+                    vocabCheck = 0
+                }
+                this.value = this.value.toUpperCase()
+                document.getElementById("now").innerHTML = "What now? " + this.value
+            }
+            else {
+                document.getElementById("inputt").value = ""
+                document.getElementById("inputt").innerHTML = ""
+            }
+        })
+        init()
+    </script>
+</body>
+
+</html>
